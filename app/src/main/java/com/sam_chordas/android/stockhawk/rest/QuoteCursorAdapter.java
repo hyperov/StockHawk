@@ -91,10 +91,12 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
     public final TextView change;
     public ViewHolder(View itemView){
       super(itemView);
+      itemView.setOnClickListener(this);
       symbol = (TextView) itemView.findViewById(R.id.stock_symbol);
       symbol.setTypeface(robotoLight);
       bidPrice = (TextView) itemView.findViewById(R.id.bid_price);
       change = (TextView) itemView.findViewById(R.id.change);
+
     }
 
     @Override
