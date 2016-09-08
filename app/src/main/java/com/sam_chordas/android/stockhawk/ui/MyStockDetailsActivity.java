@@ -8,7 +8,7 @@ import com.db.chart.model.Point;
 import com.db.chart.view.LineChartView;
 import com.sam_chordas.android.stockhawk.R;
 
-public class MyStockDetails extends AppCompatActivity {
+public class MyStockDetailsActivity extends AppCompatActivity {
 
     LineChartView lineGraph;
     LineSet set;
@@ -19,6 +19,7 @@ public class MyStockDetails extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_line_graph);
         lineGraph= (LineChartView) findViewById(R.id.linechart);
+        set=new LineSet();
 
         set.addPoint("ff",5);
         set.addPoint("fd",6);
@@ -30,6 +31,7 @@ public class MyStockDetails extends AppCompatActivity {
         set.addPoint("ffza",0);
         set.addPoint("ffqq",-5);
         lineGraph.addData(set);
+        lineGraph.show();
 
 
     }

@@ -17,7 +17,7 @@ import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
 import com.sam_chordas.android.stockhawk.touch_helper.ItemTouchHelperAdapter;
 import com.sam_chordas.android.stockhawk.touch_helper.ItemTouchHelperViewHolder;
-import com.sam_chordas.android.stockhawk.ui.MyStockDetails;
+import com.sam_chordas.android.stockhawk.ui.MyStockDetailsActivity;
 
 /**
  * Created by sam_chordas on 10/6/15.
@@ -118,7 +118,7 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
 
         @Override
         public void onClick(View v) {
-            Intent intent = new Intent(v.getContext(), MyStockDetails.class);
+            Intent intent = new Intent(v.getContext(), MyStockDetailsActivity.class);
             v.getContext().startActivity(intent);
         }
     }

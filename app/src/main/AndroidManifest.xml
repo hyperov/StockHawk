@@ -27,7 +27,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.MyStockDetails" />
+        <activity android:name=".ui.MyStockDetailsActivity" />
 
         <service
             android:name=".service.StockTaskService"
@@ -41,7 +41,7 @@
 
         <provider
             android:name=".data.generated.QuoteProvider"
-            android:authorities=".data.QuoteProvider"
+            android:authorities="com.sam_chordas.android.stockhawk.data.QuoteProvider"
             android:exported="false" />
 
 
