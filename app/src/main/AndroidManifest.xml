@@ -30,18 +30,18 @@
         </activity>
 
         <service
-            android:name="com.sam_chordas.android.stockhawk.service.StockTaskService"
+            android:name=".service.StockTaskService"
             android:exported="true"
             android:permission="com.google.android.gms.permission.BIND_NETWORK_TASK_SERVICE">
             <intent-filter>
                 <action android:name="com.google.android.gms.gcm.ACTION_TASK_READY" />
             </intent-filter>
         </service>
-        <service android:name="com.sam_chordas.android.stockhawk.service.StockIntentService" />
+        <service android:name=".service.StockIntentService" />
 
         <provider
-            android:name="com.sam_chordas.android.stockhawk.data.generated.QuoteProvider"
-            android:authorities="com.sam_chordas.android.stockhawk.data.QuoteProvider"
+            android:name="data.generated.QuoteProvider"
+            android:authorities=".data.QuoteProvider"
             android:exported="false" />
     </application>
 
