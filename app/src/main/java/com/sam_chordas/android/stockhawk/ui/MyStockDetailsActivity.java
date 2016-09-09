@@ -30,7 +30,9 @@ public class MyStockDetailsActivity extends AppCompatActivity {
         set.addPoint("ffg",2);
         set.addPoint("ffza",0);
         set.addPoint("ffqq",-5);
+        set.beginAt(0);
         lineGraph.addData(set);
+
         lineGraph.show();
 
 
