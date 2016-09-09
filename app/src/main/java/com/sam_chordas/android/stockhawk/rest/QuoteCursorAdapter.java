@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,10 +32,12 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
     private static Context mContext;
     private static Typeface robotoLight;
     private boolean isPercent;
+    private static Cursor mCursor;
 
     public QuoteCursorAdapter(Context context, Cursor cursor) {
         super(context, cursor);
         mContext = context;
+//        mCursor = cursor;
     }
 
     @Override
@@ -49,6 +52,7 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
 
     @Override
     public void onBindViewHolder(final ViewHolder viewHolder, final Cursor cursor) {
+        mCursor=cursor;
         viewHolder.symbol.setText(cursor.getString(cursor.getColumnIndex("symbol")));
         viewHolder.bidPrice.setText(cursor.getString(cursor.getColumnIndex("bid_price")));
         int sdk = Build.VERSION.SDK_INT;
@@ -118,8 +122,13 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
 
         @Override
         public void onClick(View v) {
-            Intent intent = new Intent(v.getContext(), MyStockDetailsActivity.class);
-            v.getContext().startActivity(intent);
+            Bundle bundle = new Bundle();
+            mCursor.moveToPosition(getAdapterPosition());
+            String symbol = mCursor.getString(mCursor.getColumnIndex("symbol"));
+
+            Intent intent = new Intent(mContext, MyStockDetailsActivity.class);
+            intent.putExtra("symbol", symbol);
+            mContext.startActivity(intent);
         }
     }
 }
