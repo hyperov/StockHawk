@@ -1,7 +1,10 @@
 package com.sam_chordas.android.stockhawk.ui;
 
+import android.app.LoaderManager;
+import android.content.Loader;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import com.db.chart.model.LineSet;
 import com.db.chart.model.Point;
@@ -10,13 +13,22 @@ import com.db.chart.view.LineChartView;
 import com.db.chart.view.animation.Animation;
 import com.db.chart.view.animation.easing.BounceEase;
 import com.sam_chordas.android.stockhawk.R;
+import com.sam_chordas.android.stockhawk.loader.StockFinanceLoader;
+import com.sam_chordas.android.stockhawk.pojo.HistoryStock;
 
-public class MyStockDetailsActivity extends AppCompatActivity {
+import java.util.ArrayList;
+
+public class MyStockDetailsActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<HistoryStock>> {
 
     LineChartView lineGraph;
     LineSet set;
     Point entry;
     Animation animation;
+    String symbol;
+
+    private static final int STOCK_HISTORY_LOADER_ID = 0;
+
+    Bundle bundle;
 
 
     @Override
@@ -25,66 +37,103 @@ public class MyStockDetailsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_line_graph);
         lineGraph = (LineChartView) findViewById(R.id.linechart);
 
+        // send stock name to loader
+        symbol = getIntent().getExtras().getString("symbol");
+        bundle = new Bundle();
+        bundle.putString("symbol", symbol);
+
+        //init loader
+
+
         animation = new Animation(7000);
-//        animation.setEasing(new linearEase());
+//      animation.setEasing(new linearEase());
         animation.setEasing(new BounceEase());
-        set = new LineSet();
 
-        set.addPoint("ff", 5);
-        set.addPoint("fd", 6);
-        set.addPoint("fgf", 8);
-        set.addPoint("fdfgf", 10);
-        set.addPoint("ffkj", 20);
-        set.addPoint("ffs", 30);
-        set.addPoint("ffg", 2);
-        set.addPoint("ffza", 5);
-        set.addPoint("ffqq", 7);
-        set.setDotsStrokeThickness(20);
-//        set.setDotsColor(getResources().getColor(R.color.));
-        set.setColor(getResources().getColor(R.color.md_material_blue_800));
-        set.setDotsStrokeColor(getResources().getColor(R.color.material_red_700));
-//        set.setFill(getResources().getColor(R.color.material_green_700));
-        set.setSmooth(true);
-//        set.setDashed();
 
-        lineGraph.addData(set);
-        lineGraph.setStep(3);
-        lineGraph.setAxisBorderValues(0, 50, 2);
         lineGraph.setYLabels(AxisController.LabelPosition.OUTSIDE)
                 .setXLabels(AxisController.LabelPosition.OUTSIDE);
+//        lineGraph.show();
 
 
-//        basic api calling to get stock history and show it
-//        in lineChartView
-        /*
+        getLoaderManager().initLoader(STOCK_HISTORY_LOADER_ID, bundle, this).forceLoad();
 
-        Calendar from = Calendar.getInstance();
-        Calendar to = Calendar.getInstance();
-        from.add(Calendar.YEAR, -5); // from 5 years ago
-        Stock google = null;
-        try {
-            google = YahooFinance.get("GOOG", from, to, Interval.MONTHLY);
-            Calendar c = google.getHistory().get(0).getDate();
-            String month = String.valueOf(c.get(Calendar.MONTH) + 1);
-            Date d = c.getTime();
-            Log.i("google", "onRunTask: " + google.getName());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-         */
-        lineGraph.show(animation);
 
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-
+    protected void onRestart() {
+        super.onRestart();
+//        getLoaderManager().restartLoader(STOCK_HISTORY_LOADER_ID, bundle, this).forceLoad();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+//        lineGraph.dismiss(animation);
+    }
 
+    @Override
+    public Loader<ArrayList<HistoryStock>> onCreateLoader(int id, Bundle args) {
+
+        return new StockFinanceLoader(this, args.getString("symbol"));
+    }
+
+    @Override
+    public void onLoadFinished(Loader<ArrayList<HistoryStock>> loader, ArrayList<HistoryStock> data) {
+
+
+        if (data.size() == 0) {
+            Log.e("arraylist", "onLoadFinished: " + "size is 0");
+            return;
+        }
+
+        set = new LineSet();
+        Float biggest = 0f;
+        Float smallest = data.get(0).getStockPriceLow().floatValue();
+        int step = 3;
+        for (int k = data.size(); k > 0; k--) {
+            HistoryStock stock = data.get(k - 1);
+            String month = stock.getMonth();
+            Float priceLow = stock.getStockPriceLow().floatValue();
+
+            //get highest value of points to draw chart
+            if (priceLow >= biggest)
+                biggest = priceLow;
+
+            //get lowest value of points to draw chart
+            if (priceLow <= smallest)
+                smallest = priceLow;
+
+
+            set.addPoint(month, priceLow);
+        }
+        int big = biggest.intValue();
+        int small = smallest.intValue();
+
+        //get proper step value
+        do {
+            step++;
+        } while ((((big + 20) - (small - 20)) % step) != 0);
+
+        //graph x,y Axis begin and end of y axis, and space between values
+        lineGraph.setAxisBorderValues(small - 20, big + 20, step);
+
+        //dots
+//        set.setDotsStrokeColor(getResources().getColor(R.color.material_red_700));
+
+        //set
+
+        set.setSmooth(false);
+        set.setColor(getResources().getColor(R.color.md_material_blue_800));
+        set.setDotsStrokeThickness(2);
+
+        lineGraph.addData(set);
+        lineGraph.show(animation);
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<ArrayList<HistoryStock>> loader) {
+        lineGraph.dismiss();
     }
 }
