@@ -109,7 +109,8 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                                     // in the DB and proceed accordingly
                                     Cursor c = getContentResolver().query(QuoteProvider.Quotes.CONTENT_URI,
                                             new String[]{QuoteColumns.SYMBOL}, QuoteColumns.SYMBOL + "= ?",
-                                            new String[]{input.toString()}, null);
+//                                            new String[]{input.toString()}, null);
+                                            new String[]{String.valueOf(input)}, null);
 
                                     if (c != null) {
                                         if (c.getCount() != 0) {
