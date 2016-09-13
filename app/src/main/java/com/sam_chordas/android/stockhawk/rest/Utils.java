@@ -1,9 +1,13 @@
 package com.sam_chordas.android.stockhawk.rest;
 
 import android.content.ContentProviderOperation;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
 import android.util.Log;
 
+import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
 
@@ -28,13 +32,39 @@ public class Utils {
     //server status to identify error cases
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({SERVER_OK, SERVER_DOWN, SERVER_INVALID,  SERVER_UNKNOWN, STOCK_ADD_INVALID})
-    public @interface LocationStatus {}
+    public @interface ServerStatus {}
 
     public static final int SERVER_OK = 0; // connection to url without errors
     public static final int SERVER_DOWN = 1; //server not found
     public static final int SERVER_INVALID = 2; // json parsing exception
     public static final int SERVER_UNKNOWN = 3; // default status of server
     public static final int STOCK_ADD_INVALID = 4; // stock added by user not found
+
+    /**
+     * Sets the server status into shared preference.  This function should not be called from
+     * the UI thread because it uses commit to write to the shared preferences.
+     * @param c Context to get the PreferenceManager from.
+     * @param serverStatus The IntDef value to set
+     */
+    static private void setServerStatus(Context c, @ServerStatus int serverStatus){
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+        SharedPreferences.Editor spe = sp.edit();
+        spe.putInt(c.getString(R.string.pref_server_status_key), serverStatus);
+        spe.commit();
+    }
+
+
+    /**
+     *
+     * @param c Context used to get the SharedPreferences
+     * @return the location status integer type
+     */
+    @SuppressWarnings("ResourceType")
+    static public @ServerStatus
+    int getServerStatus(Context c){
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+        return sp.getInt(c.getString(R.string.pref_server_status_key), SERVER_UNKNOWN);
+    }
 
 
 
