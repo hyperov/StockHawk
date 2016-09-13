@@ -30,4 +30,6 @@ public class StockIntentService extends IntentService {
     // scheduling a task.
     stockTaskService.onRunTask(new TaskParams(intent.getStringExtra("tag"), args));
   }
+
+
 }

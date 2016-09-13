@@ -18,15 +18,10 @@ import com.sam_chordas.android.stockhawk.rest.Utils;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Calendar;
-import java.util.Date;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import yahoofinance.Stock;
-import yahoofinance.YahooFinance;
-import yahoofinance.histquotes.Interval;
 
 /**
  * Created by sam_chordas on 9/30/15.
@@ -138,6 +133,7 @@ public class StockTaskService extends GcmTaskService {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+                Log.e(LOG_TAG, "onRunTask: " + e.getMessage(), e);
             }
         }
 
