@@ -6,6 +6,9 @@
     android:background="@android:color/holo_orange_light"
     android:padding="@dimen/activity_horizontal_margin">
 
+
+
+
     <com.db.chart.view.LineChartView
         xmlns:chart="http://schemas.android.com/apk/res-auto"
         android:id="@+id/linechart"
@@ -15,8 +18,8 @@
         chart:chart_axisColor="@color/material_green_700"
         chart:chart_axisThickness="5dp"
         chart:chart_fontSize="10sp"
-
         chart:chart_labelColor="@color/md_material_blue_800"
         />
+
 
 </FrameLayout>

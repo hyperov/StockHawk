@@ -19,6 +19,7 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -53,6 +54,9 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     private Cursor mCursor;
     boolean isConnected;
 
+    RecyclerView recyclerView;
+    FloatingActionButton fab;
+    TextView networkError;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +69,12 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         isConnected = activeNetwork != null &&
                 activeNetwork.isConnectedOrConnecting();
         setContentView(R.layout.activity_my_stocks);
+
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+
+        //empty view for network error
+        networkError = (TextView) findViewById(R.id.network_error);
+
         // The intent service is for executing immediate pulls from the Yahoo API
         // GCMTaskService can only schedule tasks, they cannot execute immediately
         mServiceIntent = new Intent(this, StockIntentService.class);
@@ -74,10 +84,12 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
             if (isConnected) {
                 startService(mServiceIntent);
             } else {
+
                 networkToast();
+                //set text for no network
             }
         }
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
 
@@ -93,7 +105,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         recyclerView.setAdapter(mCursorAdapter);
 
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.attachToRecyclerView(recyclerView);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -115,10 +127,11 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                                     if (c != null) {
                                         if (c.getCount() != 0) {
                                             Toast toast =
-                                                    Toast.makeText(MyStocksActivity.this, "This stock is already saved!",
+                                                    Toast.makeText(MyStocksActivity.this, getString(R.string.stock_inserted_found),
                                                             Toast.LENGTH_LONG);
                                             toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
                                             toast.show();
+
                                             return;
                                         } else {
 
@@ -126,6 +139,20 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                                             mServiceIntent.putExtra("tag", "add");
                                             mServiceIntent.putExtra("symbol", input.toString());
                                             startService(mServiceIntent);
+                                            int found = Utils.getServerStatus(MyStocksActivity.this);
+                                            Toast toast;
+                                            if (found == Utils.SERVER_OK) {
+                                                toast =
+                                                        Toast.makeText(MyStocksActivity.this, getString(R.string.stock_inserted_added),
+                                                                Toast.LENGTH_LONG);
+
+                                            } else {
+                                                toast =
+                                                        Toast.makeText(MyStocksActivity.this, getString(R.string.stock_inserted_not_found),
+                                                                Toast.LENGTH_LONG);
+                                            }
+                                            toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
+                                            toast.show();
                                         }
                                         c.close();
                                     }
@@ -166,6 +193,32 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     }
 
 
+    /**
+     * Updates the empty list view with contextually relevant information that the user can
+     * use to determine why they aren't seeing weather.
+     */
+    private void updateEmptyView(TextView tv) {
+
+        // if cursor is empty, why? do we have an invalid location
+        int message = R.string.empty_stock_list;
+        @Utils.ServerStatus int serverStatus = Utils.getServerStatus(this);
+        switch (serverStatus) {
+            case Utils.SERVER_DOWN:
+                message = R.string.empty_stock_list_server_down;
+                break;
+            case Utils.SERVER_INVALID:
+                message = R.string.empty_stock_list_server_invalid;
+                break;
+
+            default:
+                if (!isConnected) {
+                    message = R.string.empty_stock_list_no_network;
+                }
+        }
+        tv.setText(message);
+    }
+
+
     @Override
     public void onResume() {
         super.onResume();
@@ -173,7 +226,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     }
 
     public void networkToast() {
-        Toast.makeText(mContext, getString(R.string.network_toast), Toast.LENGTH_SHORT).show();
+        Toast.makeText(mContext, getString(R.string.network_toast), Toast.LENGTH_LONG).show();
     }
 
     public void restoreActionBar() {
@@ -226,6 +279,17 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mCursorAdapter.swapCursor(data);
         mCursor = data;
+
+        if (data.getCount() == 0) {
+            recyclerView.setVisibility(View.GONE);
+            fab.setVisibility(View.GONE);
+            networkError.setVisibility(View.VISIBLE);
+        } else {
+            recyclerView.setVisibility(View.VISIBLE);
+            fab.setVisibility(View.VISIBLE);
+            networkError.setVisibility(View.GONE);
+        }
+        updateEmptyView(networkError);
     }
 
     @Override

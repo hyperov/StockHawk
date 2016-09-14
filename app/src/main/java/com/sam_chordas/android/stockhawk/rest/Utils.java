@@ -31,8 +31,9 @@ public class Utils {
 
     //server status to identify error cases
     @Retention(RetentionPolicy.SOURCE)
-    @IntDef({SERVER_OK, SERVER_DOWN, SERVER_INVALID,  SERVER_UNKNOWN, STOCK_ADD_INVALID})
-    public @interface ServerStatus {}
+    @IntDef({SERVER_OK, SERVER_DOWN, SERVER_INVALID, SERVER_UNKNOWN, STOCK_ADD_INVALID})
+    public @interface ServerStatus {
+    }
 
     public static final int SERVER_OK = 0; // connection to url without errors
     public static final int SERVER_DOWN = 1; //server not found
@@ -43,32 +44,32 @@ public class Utils {
     /**
      * Sets the server status into shared preference.  This function should not be called from
      * the UI thread because it uses commit to write to the shared preferences.
-     * @param c Context to get the PreferenceManager from.
+     *
+     * @param c            Context to get the PreferenceManager from.
      * @param serverStatus The IntDef value to set
      */
-    static private void setServerStatus(Context c, @ServerStatus int serverStatus){
+    static public void setServerStatus(Context c, @ServerStatus int serverStatus) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
         SharedPreferences.Editor spe = sp.edit();
         spe.putInt(c.getString(R.string.pref_server_status_key), serverStatus);
-        spe.commit();
+        spe.apply();
     }
 
 
     /**
-     *
      * @param c Context used to get the SharedPreferences
      * @return the location status integer type
      */
     @SuppressWarnings("ResourceType")
-    static public @ServerStatus
-    int getServerStatus(Context c){
+    static public
+    @ServerStatus
+    int getServerStatus(Context c) {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
         return sp.getInt(c.getString(R.string.pref_server_status_key), SERVER_UNKNOWN);
     }
 
 
-
-    public static ArrayList quoteJsonToContentVals(String JSON) {
+    public static ArrayList quoteJsonToContentVals(String JSON, Context context) {
         ArrayList<ContentProviderOperation> batchOperations = new ArrayList<>();
         JSONObject jsonObject = null;
         JSONArray resultsArray = null;
@@ -83,24 +84,25 @@ public class Utils {
                     /**
                      *
                      */
-                String bid=jsonObject.getString("Bid");
-                    boolean isBid=!bid.equals("null");
-                    if (isBid) {
-                        batchOperations.add(buildBatchOperation(jsonObject));
-                    }
+                    String bid = jsonObject.getString("Bid");
+                    boolean isBid = !bid.equals("null");
+//                    if (isBid) {
+                        batchOperations.add(buildBatchOperation(jsonObject, context));
+//                    }
                 } else {
                     resultsArray = jsonObject.getJSONObject("results").getJSONArray("quote");
 
                     if (resultsArray != null && resultsArray.length() != 0) {
                         for (int i = 0; i < resultsArray.length(); i++) {
                             jsonObject = resultsArray.getJSONObject(i);
-                            batchOperations.add(buildBatchOperation(jsonObject));
+                            batchOperations.add(buildBatchOperation(jsonObject, context));
                         }
                     }
                 }
             }
         } catch (JSONException e) {
             Log.e(LOG_TAG, "String to JSON failed: " + e);
+            setServerStatus(context, SERVER_INVALID);
         }
         return batchOperations;
     }
@@ -127,7 +129,7 @@ public class Utils {
         return change;
     }
 
-    public static ContentProviderOperation buildBatchOperation(JSONObject jsonObject) {
+    public static ContentProviderOperation buildBatchOperation(JSONObject jsonObject, Context context) {
         ContentProviderOperation.Builder builder = ContentProviderOperation.newInsert(
                 QuoteProvider.Quotes.CONTENT_URI);
         try {
@@ -144,8 +146,9 @@ public class Utils {
                 builder.withValue(QuoteColumns.ISUP, 1);
             }
 
-        } catch (JSONException e) {
+        } catch (Exception e) {
             e.printStackTrace();
+            setServerStatus(context, SERVER_INVALID);
         }
         return builder.build();
     }

@@ -54,10 +54,15 @@ public class StockTaskService extends GcmTaskService {
 
     @Override
     public int onRunTask(TaskParams params) {
+
+
         Cursor initQueryCursor;
         if (mContext == null) {
             mContext = this;
         }
+        //reset server status
+        Utils.setServerStatus(mContext, Utils.SERVER_UNKNOWN);
+
         StringBuilder urlStringBuilder = new StringBuilder();
         try {
             // Base URL for the Yahoo query
@@ -127,13 +132,15 @@ public class StockTaskService extends GcmTaskService {
                                 null, null);
                     }
                     mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
-                            Utils.quoteJsonToContentVals(getResponse));
+                            Utils.quoteJsonToContentVals(getResponse, mContext));
+//                    Utils.setServerStatus(mContext, Utils.SERVER_OK);
                 } catch (RemoteException | OperationApplicationException e) {
                     Log.e(LOG_TAG, "Error applying batch insert", e);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
                 Log.e(LOG_TAG, "onRunTask: " + e.getMessage(), e);
+                Utils.setServerStatus(mContext, Utils.SERVER_DOWN);
             }
         }
 
