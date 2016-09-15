@@ -3,6 +3,8 @@ package com.sam_chordas.android.stockhawk.rest;
 import android.content.ContentProviderOperation;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
 import android.util.Log;
@@ -18,6 +20,7 @@ import org.json.JSONObject;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.Locale;
 
 /**
  * Created by sam_chordas on 10/8/15.
@@ -68,8 +71,19 @@ public class Utils {
         return sp.getInt(c.getString(R.string.pref_server_status_key), SERVER_UNKNOWN);
     }
 
+    public static boolean isConnected(Context context) {
 
-    public static ArrayList quoteJsonToContentVals(String JSON, Context context) {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+        return activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+    }
+
+
+    public static ArrayList<ContentProviderOperation> quoteJsonToContentVals(String JSON, Context context) {
         ArrayList<ContentProviderOperation> batchOperations = new ArrayList<>();
         JSONObject jsonObject = null;
         JSONArray resultsArray = null;
@@ -86,9 +100,9 @@ public class Utils {
                      */
                     String bid = jsonObject.getString("Bid");
                     boolean isBid = !bid.equals("null");
-//                    if (isBid) {
+                    if (isBid)
                         batchOperations.add(buildBatchOperation(jsonObject, context));
-//                    }
+//
                 } else {
                     resultsArray = jsonObject.getJSONObject("results").getJSONArray("quote");
 
@@ -108,11 +122,20 @@ public class Utils {
     }
 
     public static String truncateBidPrice(String bidPrice) {
-        bidPrice = String.format("%.2f", Float.parseFloat(bidPrice));
+
+        if (bidPrice.equals("null"))
+            return "0";
+
+        bidPrice = String.format(Locale.ENGLISH, "%.2f", Float.parseFloat(bidPrice));
+//        bidPrice = String.format("%.2f", Float.parseFloat(bidPrice));
         return bidPrice;
     }
 
     public static String truncateChange(String change, boolean isPercentChange) {
+
+        if (change.equals("null"))
+            return "0";
+
         String weight = change.substring(0, 1);
         String ampersand = "";
         if (isPercentChange) {
@@ -121,7 +144,10 @@ public class Utils {
         }
         change = change.substring(1, change.length());
         double round = (double) Math.round(Double.parseDouble(change) * 100) / 100;
-        change = String.format("%.2f", round);
+
+        change = String.format(Locale.ENGLISH, "%.2f", round);
+
+//        change = String.format("%.2f", round);
         StringBuffer changeBuffer = new StringBuffer(change);
         changeBuffer.insert(0, weight);
         changeBuffer.append(ampersand);
@@ -145,6 +171,7 @@ public class Utils {
             } else {
                 builder.withValue(QuoteColumns.ISUP, 1);
             }
+
 
         } catch (Exception e) {
             e.printStackTrace();

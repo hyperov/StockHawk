@@ -24,5 +24,6 @@
 
     <!-- Key name for storing server status in SharedPreferences -->
     <string name="pref_server_status_key" translatable="false">server-status</string>
+    <string name="stock_name_added_is_null_or_contains_spaces">Enter a valid stock name,No spaces allowed</string>
 
 </resources>

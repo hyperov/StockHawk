@@ -6,8 +6,6 @@ import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -52,7 +50,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     private QuoteCursorAdapter mCursorAdapter;
     private Context mContext;
     private Cursor mCursor;
-    boolean isConnected;
+//    boolean isConnected;
 
     RecyclerView recyclerView;
     FloatingActionButton fab;
@@ -62,12 +60,12 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
-        ConnectivityManager cm =
-                (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        isConnected = activeNetwork != null &&
-                activeNetwork.isConnectedOrConnecting();
+//        ConnectivityManager cm =
+//                (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+//
+//        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+//        isConnected = activeNetwork != null &&
+//                activeNetwork.isConnectedOrConnecting();
         setContentView(R.layout.activity_my_stocks);
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -79,16 +77,22 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         // GCMTaskService can only schedule tasks, they cannot execute immediately
         mServiceIntent = new Intent(this, StockIntentService.class);
         if (savedInstanceState == null) {
+
+            Utils.setServerStatus(this, Utils.SERVER_UNKNOWN);
+
             // Run the initialize task service so that some stocks appear upon an empty database
             mServiceIntent.putExtra("tag", "init");
-            if (isConnected) {
-                startService(mServiceIntent);
-            } else {
 
-                networkToast();
-                //set text for no network
-            }
+            if (Utils.isConnected(this))
+                startService(mServiceIntent);
+
+//            else {
+//                updateEmptyView(networkError);
+//                networkToast();
+//                //set text for no network
+//            }
         }
+
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
@@ -110,22 +114,22 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isConnected) {
+                if (Utils.isConnected(MyStocksActivity.this)) {
                     new MaterialDialog.Builder(mContext).title(R.string.symbol_search)
                             .content(R.string.content_test)
                             .inputType(InputType.TYPE_CLASS_TEXT)
                             .input(R.string.input_hint, R.string.input_prefill, new MaterialDialog.InputCallback() {
                                 @Override
                                 public void onInput(MaterialDialog dialog, CharSequence input) {
-                                    // On FAB click, receive user input. Make sure the stock doesn't already exist
-                                    // in the DB and proceed accordingly
-                                    Cursor c = getContentResolver().query(QuoteProvider.Quotes.CONTENT_URI,
-                                            new String[]{QuoteColumns.SYMBOL}, QuoteColumns.SYMBOL + "= ?",
-//                                            new String[]{input.toString()}, null);
-                                            new String[]{String.valueOf(input)}, null);
+                                    if (!String.valueOf(input).isEmpty() && !String.valueOf(input).contains(" ")) {
+                                        // On FAB click, receive user input. Make sure the stock doesn't already exist
+                                        // in the DB and proceed accordingly
+                                        Cursor c = getContentResolver().query(QuoteProvider.Quotes.CONTENT_URI,
+                                                new String[]{QuoteColumns.SYMBOL}, QuoteColumns.SYMBOL + "= ?",
+                                                new String[]{input.toString().toUpperCase()}, null);
 
-                                    if (c != null) {
-                                        if (c.getCount() != 0) {
+
+                                        if (c != null && c.getCount() != 0) {
                                             Toast toast =
                                                     Toast.makeText(MyStocksActivity.this, getString(R.string.stock_inserted_found),
                                                             Toast.LENGTH_LONG);
@@ -137,24 +141,31 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
 
                                             // Add the stock to DB
                                             mServiceIntent.putExtra("tag", "add");
-                                            mServiceIntent.putExtra("symbol", input.toString());
+                                            mServiceIntent.putExtra("symbol", input.toString().toUpperCase());
                                             startService(mServiceIntent);
                                             int found = Utils.getServerStatus(MyStocksActivity.this);
                                             Toast toast;
-                                            if (found == Utils.SERVER_OK) {
+                                            if (found != Utils.SERVER_OK) { // stock name not valid stock
                                                 toast =
-                                                        Toast.makeText(MyStocksActivity.this, getString(R.string.stock_inserted_added),
+                                                        Toast.makeText(MyStocksActivity.this,
+                                                                getString(R.string.stock_inserted_not_found),
                                                                 Toast.LENGTH_LONG);
 
-                                            } else {
+                                            } else { //valid stock
                                                 toast =
-                                                        Toast.makeText(MyStocksActivity.this, getString(R.string.stock_inserted_not_found),
+                                                        Toast.makeText(MyStocksActivity.this,
+                                                                getString(R.string.stock_inserted_added),
                                                                 Toast.LENGTH_LONG);
                                             }
                                             toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
                                             toast.show();
                                         }
-                                        c.close();
+                                        if (c != null)
+                                            c.close();
+
+                                    } else {
+                                        Toast.makeText(MyStocksActivity.this,
+                                                R.string.stock_name_added_is_null_or_contains_spaces, Toast.LENGTH_SHORT).show();
                                     }
                                 }
                             })
@@ -171,7 +182,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         mItemTouchHelper.attachToRecyclerView(recyclerView);
 
         mTitle = getTitle();
-        if (isConnected) {
+        if (Utils.isConnected(this)) {
             long period = 3600L;
             long flex = 10L;
             String periodicTag = "periodic";
@@ -211,7 +222,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                 break;
 
             default:
-                if (!isConnected) {
+                if (!Utils.isConnected(this)) {
                     message = R.string.empty_stock_list_no_network;
                 }
         }
@@ -284,12 +295,13 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
             recyclerView.setVisibility(View.GONE);
             fab.setVisibility(View.GONE);
             networkError.setVisibility(View.VISIBLE);
+            updateEmptyView(networkError);
         } else {
             recyclerView.setVisibility(View.VISIBLE);
             fab.setVisibility(View.VISIBLE);
             networkError.setVisibility(View.GONE);
         }
-        updateEmptyView(networkError);
+
     }
 
     @Override
