@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -28,13 +29,14 @@ import com.melnykov.fab.FloatingActionButton;
 import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
+import com.sam_chordas.android.stockhawk.receiver.MyResultReceiver;
 import com.sam_chordas.android.stockhawk.rest.QuoteCursorAdapter;
 import com.sam_chordas.android.stockhawk.rest.Utils;
 import com.sam_chordas.android.stockhawk.service.StockIntentService;
 import com.sam_chordas.android.stockhawk.service.StockTaskService;
 import com.sam_chordas.android.stockhawk.touch_helper.SimpleItemTouchHelperCallback;
 
-public class MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MyStocksActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, MyResultReceiver.Receiver {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -50,7 +52,8 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     private QuoteCursorAdapter mCursorAdapter;
     private Context mContext;
     private Cursor mCursor;
-//    boolean isConnected;
+
+    public MyResultReceiver mReceiver;
 
     RecyclerView recyclerView;
     FloatingActionButton fab;
@@ -60,13 +63,12 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
-//        ConnectivityManager cm =
-//                (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-//
-//        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-//        isConnected = activeNetwork != null &&
-//                activeNetwork.isConnectedOrConnecting();
+
         setContentView(R.layout.activity_my_stocks);
+
+        //receiver to receive data from intent to activity
+        mReceiver = new MyResultReceiver(new Handler());
+        mReceiver.setReceiver(this);
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
 
@@ -128,40 +130,45 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                                                 new String[]{QuoteColumns.SYMBOL}, QuoteColumns.SYMBOL + "= ?",
                                                 new String[]{input.toString().toUpperCase()}, null);
 
-
-                                        if (c != null && c.getCount() != 0) {
-                                            Toast toast =
-                                                    Toast.makeText(MyStocksActivity.this, getString(R.string.stock_inserted_found),
-                                                            Toast.LENGTH_LONG);
-                                            toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
-                                            toast.show();
-
-                                            return;
-                                        } else {
-
-                                            // Add the stock to DB
-                                            mServiceIntent.putExtra("tag", "add");
-                                            mServiceIntent.putExtra("symbol", input.toString().toUpperCase());
-                                            startService(mServiceIntent);
-                                            int found = Utils.getServerStatus(MyStocksActivity.this);
-                                            Toast toast;
-                                            if (found != Utils.SERVER_OK) { // stock name not valid stock
-                                                toast =
-                                                        Toast.makeText(MyStocksActivity.this,
-                                                                getString(R.string.stock_inserted_not_found),
+                                        if (c != null) {
+                                            if (c.getCount() != 0) {
+                                                Toast toast =
+                                                        Toast.makeText(MyStocksActivity.this, getString(R.string.stock_inserted_found),
                                                                 Toast.LENGTH_LONG);
+                                                toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
+                                                toast.show();
 
-                                            } else { //valid stock
-                                                toast =
-                                                        Toast.makeText(MyStocksActivity.this,
-                                                                getString(R.string.stock_inserted_added),
-                                                                Toast.LENGTH_LONG);
+                                                c.close();
+
+                                            } else {
+
+                                                // Add the stock to DB
+                                                mServiceIntent.putExtra("tag", "add");
+                                                mServiceIntent.putExtra("symbol", input.toString().toUpperCase());
+                                                //send receiver to intent
+                                                mServiceIntent.putExtra("receiver", mReceiver);
+                                                startService(mServiceIntent);
+//                                            int found = Utils.getServerStatus(MyStocksActivity.this);
+//                                            Toast toast;
+//                                            if (found != Utils.SERVER_OK) { // stock name not valid stock
+//                                                toast =
+//                                                        Toast.makeText(MyStocksActivity.this,
+//                                                                getString(R.string.stock_inserted_not_found),
+//                                                                Toast.LENGTH_LONG);
+//
+//                                            } else { //valid stock
+//                                                toast =
+//                                                        Toast.makeText(MyStocksActivity.this,
+//                                                                getString(R.string.stock_inserted_added),
+//                                                                Toast.LENGTH_LONG);
+//                                            }
+//                                            toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
+//                                            toast.show();
+                                                c.close();
+
                                             }
-                                            toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
-                                            toast.show();
+
                                         }
-                                        if (c != null)
-                                            c.close();
 
                                     } else {
                                         Toast.makeText(MyStocksActivity.this,
@@ -309,4 +316,31 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         mCursorAdapter.swapCursor(null);
     }
 
+    @Override
+    public void onReceiveResult(int resultCode, Bundle resultData) {
+
+        String status;
+        if (resultCode == 0 && resultData != null) {
+            Toast toast;
+            status = resultData.getString("status");
+            if (status.equals("ok")) { //valid stock
+                toast =
+                        Toast.makeText(this,
+                                getString(R.string.stock_inserted_added),
+                                Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
+                toast.show();
+
+            } else if (status.equals("invalid")) { //invalid stock
+                toast =
+                        Toast.makeText(this,
+                                getString(R.string.stock_inserted_not_found),
+                                Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
+                toast.show();
+            }
+
+
+        }
+    }
 }

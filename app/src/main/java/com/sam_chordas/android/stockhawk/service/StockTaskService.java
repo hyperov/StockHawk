@@ -6,7 +6,9 @@ import android.content.Context;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
+import android.os.Bundle;
 import android.os.RemoteException;
+import android.os.ResultReceiver;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmNetworkManager;
@@ -57,7 +59,7 @@ public class StockTaskService extends GcmTaskService {
     @Override
     public int onRunTask(TaskParams params) {
 
-
+        ResultReceiver resultReceiver=null;
         Cursor initQueryCursor;
         if (mContext == null) {
             mContext = this;
@@ -110,6 +112,9 @@ public class StockTaskService extends GcmTaskService {
                 initQueryCursor.close();
 
         } else if (params.getTag().equals("add")) {
+            //receiver
+           resultReceiver= params.getExtras().getParcelable("receiver");
+
             isUpdate = false;
             // get symbol from params.getExtra and build query
             String stockInput = params.getExtras().getString("symbol");
@@ -148,8 +153,19 @@ public class StockTaskService extends GcmTaskService {
                     mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
                             contentProviderOperations);
                     Utils.setServerStatus(mContext, Utils.SERVER_OK);
+                    //receiver
+                    if(resultReceiver!=null){
+                        Bundle bundle=new Bundle();
+                        bundle.putString("status","ok");
+                        resultReceiver.send(0,bundle);
+                    }
                 } else {
                     Utils.setServerStatus(mContext, Utils.SERVER_INVALID);
+                    if(resultReceiver!=null){
+                        Bundle bundle=new Bundle();
+                        bundle.putString("status","invalid");
+                        resultReceiver.send(0,bundle);
+                    }
                 }
             } catch (RemoteException | OperationApplicationException e) {
                 Log.e(LOG_TAG, "Error applying batch insert", e);
