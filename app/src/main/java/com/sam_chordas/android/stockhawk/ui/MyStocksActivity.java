@@ -4,6 +4,7 @@ import android.app.LoaderManager;
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ import com.melnykov.fab.FloatingActionButton;
 import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
 import com.sam_chordas.android.stockhawk.data.QuoteProvider;
+import com.sam_chordas.android.stockhawk.receiver.ConnectivityReceiver;
 import com.sam_chordas.android.stockhawk.receiver.MyResultReceiver;
 import com.sam_chordas.android.stockhawk.rest.QuoteCursorAdapter;
 import com.sam_chordas.android.stockhawk.rest.Utils;
@@ -54,6 +56,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     private Cursor mCursor;
 
     public MyResultReceiver mReceiver;
+    public ConnectivityReceiver connectivityReceiver;
 
     RecyclerView recyclerView;
     FloatingActionButton fab;
@@ -69,6 +72,10 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         //receiver to receive data from intent to activity
         mReceiver = new MyResultReceiver(new Handler());
 
+        //receiver to check connectivity change
+        connectivityReceiver = new ConnectivityReceiver();
+//        registerReceiver(connectivityReceiver,
+//                new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
 
@@ -148,26 +155,11 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                                                 //send receiver to intent
                                                 mServiceIntent.putExtra("receiver", mReceiver);
                                                 startService(mServiceIntent);
-//                                            int found = Utils.getServerStatus(MyStocksActivity.this);
-//                                            Toast toast;
-//                                            if (found != Utils.SERVER_OK) { // stock name not valid stock
-//                                                toast =
-//                                                        Toast.makeText(MyStocksActivity.this,
-//                                                                getString(R.string.stock_inserted_not_found),
-//                                                                Toast.LENGTH_LONG);
-//
-//                                            } else { //valid stock
-//                                                toast =
-//                                                        Toast.makeText(MyStocksActivity.this,
-//                                                                getString(R.string.stock_inserted_added),
-//                                                                Toast.LENGTH_LONG);
-//                                            }
-//                                            toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
-//                                            toast.show();
+
+                                                //close cursor
                                                 c.close();
 
                                             }
-
                                         }
 
                                     } else {
@@ -240,14 +232,28 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     @Override
     public void onResume() {
         super.onResume();
-        mReceiver.setReceiver(this);
-        getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
+//        getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onStart() {
+        super.onStart();
+        mReceiver.setReceiver(this);
+        registerReceiver(connectivityReceiver,
+                new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
         mReceiver.setReceiver(null);
+        unregisterReceiver(connectivityReceiver);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
     }
 
     public void networkToast() {
@@ -330,7 +336,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
         if (resultCode == 0 && resultData != null) {
             Toast toast;
             status = resultData.getString("status");
-            if (status.equals("ok")) { //valid stock
+            if (status != null && status.equals("ok")) { //valid stock
                 toast =
                         Toast.makeText(this,
                                 getString(R.string.stock_inserted_added),
@@ -338,7 +344,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                 toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
                 toast.show();
 
-            } else if (status.equals("invalid")) { //invalid stock
+            } else if (status != null &&status.equals("invalid")) { //invalid stock
                 toast =
                         Toast.makeText(this,
                                 getString(R.string.stock_inserted_not_found),

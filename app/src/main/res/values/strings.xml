@@ -19,7 +19,7 @@
     <string name="empty_stock_list_server_invalid">No Stocks information available. The server is not returning valid data. Please check for an updated version of StockHawk.</string>
     <!--Toast messages-->
     <string name="stock_inserted_found">This stock is already saved!</string>
-    <string name="stock_inserted_not_found">The stock you entered is not found.</string>
+    <string name="stock_inserted_not_found">The stock you entered is invalid.</string>
     <string name="stock_inserted_added">The stock you entered is added.</string>
 
     <!-- Key name for storing server status in SharedPreferences -->

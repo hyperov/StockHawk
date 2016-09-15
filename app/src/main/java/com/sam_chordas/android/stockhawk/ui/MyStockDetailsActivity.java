@@ -60,11 +60,12 @@ public class MyStockDetailsActivity extends AppCompatActivity implements LoaderM
 
     }
 
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-//        getLoaderManager().restartLoader(STOCK_HISTORY_LOADER_ID, bundle, this).forceLoad();
-    }
+
+//    @Nullable
+//    @Override
+//    public Intent getParentActivityIntent() {
+//        return super.getParentActivityIntent().addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//    }
 
     @Override
     protected void onStop() {
@@ -134,6 +135,6 @@ public class MyStockDetailsActivity extends AppCompatActivity implements LoaderM
 
     @Override
     public void onLoaderReset(Loader<ArrayList<HistoryStock>> loader) {
-        lineGraph.dismiss();
+//        lineGraph.dismiss();
     }
 }
