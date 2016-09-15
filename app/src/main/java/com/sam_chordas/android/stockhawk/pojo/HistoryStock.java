@@ -3,7 +3,7 @@ package com.sam_chordas.android.stockhawk.pojo;
 import java.math.BigDecimal;
 
 /**
- * Created by Ahmed on 9/9/2016.
+ * Created by Ahmed Nabil on 9/9/2016.
  */
 public class HistoryStock {
 

@@ -68,7 +68,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
 
         //receiver to receive data from intent to activity
         mReceiver = new MyResultReceiver(new Handler());
-        mReceiver.setReceiver(this);
+
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
 
@@ -240,7 +240,14 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     @Override
     public void onResume() {
         super.onResume();
+        mReceiver.setReceiver(this);
         getLoaderManager().restartLoader(CURSOR_LOADER_ID, null, this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mReceiver.setReceiver(null);
     }
 
     public void networkToast() {
