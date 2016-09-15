@@ -6,12 +6,12 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
-import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.sam_chordas.android.stockhawk.R;
 import com.sam_chordas.android.stockhawk.data.QuoteColumns;
@@ -122,13 +122,17 @@ public class QuoteCursorAdapter extends CursorRecyclerViewAdapter<QuoteCursorAda
 
         @Override
         public void onClick(View v) {
-            Bundle bundle = new Bundle();
-            mCursor.moveToPosition(getAdapterPosition());
-            String symbol = mCursor.getString(mCursor.getColumnIndex("symbol"));
+            if(Utils.isConnected(mContext)) {
+//            Bundle bundle = new Bundle();
+                mCursor.moveToPosition(getAdapterPosition());
+                String symbol = mCursor.getString(mCursor.getColumnIndex("symbol"));
 
-            Intent intent = new Intent(mContext, MyStockDetailsActivity.class);
-            intent.putExtra("symbol", symbol);
-            mContext.startActivity(intent);
+                Intent intent = new Intent(mContext, MyStockDetailsActivity.class);
+                intent.putExtra("symbol", symbol);
+                mContext.startActivity(intent);
+            }else{
+                Toast.makeText(mContext,mContext.getString(R.string.network_toast),Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }
