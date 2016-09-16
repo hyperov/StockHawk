@@ -25,5 +25,11 @@
     <!-- Key name for storing server status in SharedPreferences -->
     <string name="pref_server_status_key" translatable="false">server-status</string>
     <string name="stock_name_added_is_null_or_contains_spaces">Enter a valid stock name,No spaces allowed</string>
+    <string name="enter_new_stock">enter new stock</string>
+    <string name="stock_name">"the name of stock is "</string>
+    <string name="bid_price">"bid price is "</string>
+    <string name="percent_change">"stock price change in percentage is "</string>
+    <string name="change_stock">change in price is</string>
+    <string name="chart_view">chart drawing to visualize stock price monthly over last year</string>
 
 </resources>

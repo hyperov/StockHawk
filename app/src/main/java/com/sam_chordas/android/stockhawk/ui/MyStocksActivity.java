@@ -226,6 +226,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                 }
         }
         tv.setText(message);
+        tv.setContentDescription(getString(message));
     }
 
 
@@ -344,7 +345,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
                 toast.setGravity(Gravity.CENTER, Gravity.CENTER, 0);
                 toast.show();
 
-            } else if (status != null &&status.equals("invalid")) { //invalid stock
+            } else if (status != null && status.equals("invalid")) { //invalid stock
                 toast =
                         Toast.makeText(this,
                                 getString(R.string.stock_inserted_not_found),

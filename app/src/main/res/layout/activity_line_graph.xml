@@ -19,6 +19,7 @@
         chart:chart_axisThickness="5dp"
         chart:chart_fontSize="10sp"
         chart:chart_labelColor="@color/md_material_blue_800"
+        android:contentDescription="@string/chart_view"
         />
 
 
