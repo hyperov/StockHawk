@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_settings">اعدادات</string>
+    <string name="bid_price">سعر السهم </string>
+    <string name="change_stock">تغير سعر السهم</string>
+    <string name="chart_view">رسم بيانى يوضح سعر السهم شهريا خلال العام الماضى</string>
+    <string name="content_test">البحث عن رمز او اسم السهم</string>
+    <string name="empty_stock_list">لا يوجد معلومات متاحة عن الاسهم</string>
+    <string name="empty_stock_list_no_network">لا يوجد معلومات متاحة عن الاسهم..تأكد من اعدادات شبكة الانترنت بالهاتف</string>
+    <string name="empty_stock_list_server_down">لا يوجد معلومات متاحة عن الاسهم..خطا فى الاتصال بالسيرفر</string>
+    <string name="empty_stock_list_server_invalid">لا يوجد معلومات متاحة عن الاسهم..خطا فى الاتصال بالسيرفر..تاكد من تحديث نسختك من التطبيق</string>
+    <string name="enter_new_stock">اضف سهم جديد</string>
+    <string name="percent_change">التغير المئوى فى سعر السهم</string>
+    <string name="stock_inserted_added">تم اضافة السهم الجديد</string>
+    <string name="stock_inserted_found">السهم الذى تحاول اضافته..موجود بالفعل!</string>
+    <string name="stock_inserted_not_found">لا يوجد سهم بهذا الاسم</string>
+    <string name="stock_name">اسم السهم</string>
+    <string name="stock_name_added_is_null_or_contains_spaces">من فضلك ادخل اسم مناسب</string>
+    <string name="symbol_search">البحث عن السهم</string>
+    <string name="network_toast">لا يوجد شبكة اتصال..تاكد من تفعيل الشبكة</string>
+</resources>
