@@ -104,7 +104,7 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
 
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
+
 
         mCursorAdapter = new QuoteCursorAdapter(this, null);
 //        recyclerView.addOnItemTouchListener(new RecyclerViewItemClickListener(this,
@@ -116,6 +116,8 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
 //                    }
 //                }));
         recyclerView.setAdapter(mCursorAdapter);
+//        recyclerView.setAdapter(null);
+        getLoaderManager().initLoader(CURSOR_LOADER_ID, null, this);
 
 
         final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -310,9 +312,11 @@ public class MyStocksActivity extends AppCompatActivity implements LoaderManager
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         mCursorAdapter.swapCursor(data);
+//        recyclerView.setAdapter(mCursorAdapter);
         mCursor = data;
 
         if (data.getCount() == 0) {
+//        if (!Utils.isConnected(this)) {
             recyclerView.setVisibility(View.GONE);
             fab.setVisibility(View.GONE);
             networkError.setVisibility(View.VISIBLE);

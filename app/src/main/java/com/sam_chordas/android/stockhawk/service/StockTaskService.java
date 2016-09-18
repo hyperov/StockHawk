@@ -3,6 +3,7 @@ package com.sam_chordas.android.stockhawk.service;
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
@@ -34,6 +35,7 @@ import okhttp3.Response;
  */
 public class StockTaskService extends GcmTaskService {
     private String LOG_TAG = StockTaskService.class.getSimpleName();
+    public static final String ACTION_DATA_UPDATED="com.sam_chorads.android.stockhawk.ACTION_DATA_UPDATED";
 
     private OkHttpClient client = new OkHttpClient();
     private Context mContext;
@@ -153,7 +155,11 @@ public class StockTaskService extends GcmTaskService {
                     mContext.getContentResolver().applyBatch(QuoteProvider.AUTHORITY,
                             contentProviderOperations);
                     Utils.setServerStatus(mContext, Utils.SERVER_OK);
-                    //receiver
+                    //broad cast for widget
+                    Intent updateData=new Intent(ACTION_DATA_UPDATED)
+                            .setPackage(mContext.getPackageName());
+                    mContext.sendBroadcast(updateData);
+                    //receiver :tag=add
                     if(resultReceiver!=null){
                         Bundle bundle=new Bundle();
                         bundle.putString("status","ok");
@@ -161,6 +167,7 @@ public class StockTaskService extends GcmTaskService {
                     }
                 } else {
                     Utils.setServerStatus(mContext, Utils.SERVER_INVALID);
+                    // receiver:tag=add
                     if(resultReceiver!=null){
                         Bundle bundle=new Bundle();
                         bundle.putString("status","invalid");

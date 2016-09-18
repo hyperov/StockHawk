@@ -21,16 +21,16 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".ui.MyStocksActivity"
-            android:label="@string/app_name">
+            android:label="main">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ui.MyStockDetailsActivity"
-            android:parentActivityName=".ui.MyStocksActivity"
-            />
+        <activity
+            android:name=".ui.MyStockDetailsActivity"
+            android:parentActivityName=".ui.MyStocksActivity"/>
 
         <service
             android:name=".service.StockTaskService"
@@ -47,7 +47,26 @@
             android:authorities="com.sam_chordas.android.stockhawk.data.QuoteProvider"
             android:exported="false"/>
 
+        <!--widget for stocks-->
+        <receiver
+            android:name=".widget.NewAppWidget"
+            android:enabled="true"
+            android:label="@string/app_name"
+            >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="com.sam_chordas.android.stockhawk.ACTION_DATA_UPDATED"/>
+            </intent-filter>
 
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/new_app_widget_info"/>
+        </receiver>
+        <service
+            android:name=".service.WidgetService"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS"/>
 
     </application>
 
